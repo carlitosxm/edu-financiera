@@ -94,6 +94,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       const finalCashInRegister = state.cashInRegister + realCashFlow - penalty;
 
+      // Si te quedas sin dinero por multas de vueltos, directo a la nueva pantalla de quiebra
       if (finalCashInRegister < 0) {
         return { ...state, cashInRegister: finalCashInRegister, phase: 'BANKRUPTCY' };
       }
@@ -116,10 +117,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'CLOSE_WEEK': {
       const netCashAfterFixed = state.cashInRegister - FIXED_WEEKLY_COSTS;
       
+      // Quiebra al pagar el alquiler semanal
       if (netCashAfterFixed < 0) {
         return { ...state, cashInRegister: netCashAfterFixed, phase: 'BANKRUPTCY' };
       }
 
+      // Control estricto del mes: Al cerrar la semana 4, directo a la victoria
       if (state.week === 4) {
         return { ...state, cashInRegister: netCashAfterFixed, phase: 'VICTORY' };
       }
@@ -160,6 +163,7 @@ interface GameContextType {
   resetGame: () => void;
 }
 
+// ¡AQUÍ ESTÁ EL REQUERIDO EXPORT QUE HACÍA FALTA!
 export const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

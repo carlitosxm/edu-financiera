@@ -2,12 +2,22 @@
 import React, { useState } from 'react';
 import { useGame } from '../../../context/useGame';
 import { PRODUCT_CATALOG } from '../../../utils/constants';
+import { sounds } from '../../../utils/sounds'; // Importamos el motor de audio
+
+interface CoinParticle {
+  id: number;
+  left: number;
+  delay: number;
+}
 
 export const CashbackPhase: React.FC = () => {
   const { state, submitCashback } = useGame();
   const [displayValue, setDisplayValue] = useState<string>('0');
   const [penaltyAccumulated, setPenaltyAccumulated] = useState<number>(0);
   const [errorFeedback, setErrorFeedback] = useState<string>('');
+  
+  // Estado local para renderizar las monedas físicas volando
+  const [coins, setCoins] = useState<CoinParticle[]>([]);
 
   const currentCustomer = state.customersQueue[state.currentCustomerIndex];
 
@@ -34,11 +44,29 @@ export const CashbackPhase: React.FC = () => {
 
   const handleConfirm = () => {
     if (changeGivenNum === expectedChange) {
-      submitCashback(changeGivenNum, expectedChange, penaltyAccumulated);
-      setDisplayValue('0');
-      setPenaltyAccumulated(0);
-      setErrorFeedback('');
+      // 1. EFECTO EXITOSO: Reproducir "Cha-Ching"
+      sounds.playRegister();
+
+      // 2. Disparar ráfaga de 8 monedas en posiciones aleatorias horizontales
+      const particles = Array.from({ length: 8 }).map((_, i) => ({
+        id: Date.now() + i,
+        left: Math.random() * 60 + 20, // Distribución centrada
+        delay: i * 0.06 // Cascada de salida
+      }));
+      setCoins(particles);
+
+      // 3. Pequeña pausa dramática para disfrutar el éxito antes de avanzar de pantalla
+      setTimeout(() => {
+        submitCashback(changeGivenNum, expectedChange, penaltyAccumulated);
+        setDisplayValue('0');
+        setPenaltyAccumulated(0);
+        setErrorFeedback('');
+        setCoins([]);
+      }, 800);
+
     } else {
+      // EFECTO FALLIDO: Sonido raspado de error
+      sounds.playError();
       setPenaltyAccumulated((prev) => prev + 2);
       setErrorFeedback(`⚠️ ¡Vuelto incorrecto! El cliente reclama que el vuelto real debe ser de $${expectedChange}. Se aplican $2 de multa.`);
     }
@@ -47,7 +75,23 @@ export const CashbackPhase: React.FC = () => {
   if (!currentCustomer) return null;
 
   return (
-    <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '20px', width: '100%', boxSizing: 'border-box' }} className="phase-animation">
+    <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '20px', width: '100%', boxSizing: 'border-box', position: 'relative' }} className="phase-animation">
+      
+      {/* RENDERIZADOR DE MONEDAS VOLADORAS */}
+      {coins.map((coin) => (
+        <span 
+          key={coin.id} 
+          className="michi-coin-particle"
+          style={{ 
+            left: `${coin.left}%`, 
+            bottom: '80px',
+            animationDelay: `${coin.delay}s`
+          }}
+        >
+          🪙
+        </span>
+      ))}
+
       <h2 style={{ margin: '0 0 15px 0', color: '#b45309', fontSize: '22px', fontWeight: 800 }}>Fase 3: Gestión de Cambio</h2>
 
       {errorFeedback && (
@@ -58,44 +102,47 @@ export const CashbackPhase: React.FC = () => {
 
       <div style={{ display: 'flex', flexDirection: 'row', gap: '15px', alignItems: 'stretch', width: '100%', boxSizing: 'border-box' }}>
         
+        {/* COLUMNA 1: CLIENTE */}
         <div style={{ flex: '1', backgroundColor: '#fffbeb', padding: '15px', borderRadius: '16px', border: '1px solid #fef3c7', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
           <img src="/michi_cliente.png" alt="Michi" style={{ width: '75px', height: '75px', objectFit: 'contain', marginBottom: '10px' }} />
           <h4 style={{ margin: '0 0 5px 0', color: '#78350f' }}>Cliente: {currentCustomer.name}</h4>
-          <div style={{ borderTop: '1px dashed #fcd34d', paddingTop: '10px', width: '100%', fontSize: '14px', lineHeight: '1.6' }}>
+          <div style={{ borderTop: '1px dashed #fcd34d', paddingTop: '10px', width: '100%', fontSize: '14px', lineHeight: '1.6', color: '#4b5563' }}>
             🛒 Total Cuenta: <strong>${realTotal}</strong><br />
             💵 Paga Con: <strong>${currentCustomer.paymentWith}</strong>
           </div>
         </div>
 
+        {/* COLUMNA 2: REGISTRADORA TÁCTIL */}
         <div style={{ flex: '1.4', backgroundColor: '#cbd5e1', padding: '15px', borderRadius: '20px', border: '3px solid #64748b', boxShadow: '0 6px 0px #475569', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-          <div style={{ backgroundColor: '#1e293b', color: '#4ade80', padding: '10px 15px', borderRadius: '8px', textAlign: 'right', fontSize: '36px', fontFamily: 'monospace', marginBottom: '12px', border: '3px solid #94a3b8' }}>
+          <div style={{ backgroundColor: '#1e293b', color: '#4ade80', padding: '10px 15px', borderRadius: '8px', textAlign: 'right', fontSize: '36px', fontFamily: 'monospace', marginBottom: '12px', border: '3px solid #94a3b8', textShadow: '0 0 8px rgba(74, 222, 128, 0.5)' }}>
             {displayValue}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', flex: 1 }}>
             {['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].map((n) => (
-              <button key={n} onClick={() => handleNumberClick(n)} style={{ padding: '12px 0', fontSize: '20px', fontWeight: 'bold', borderRadius: '8px', backgroundColor: '#f8fafc', border: '2px solid #94a3b8', boxShadow: '0 3px 0px #94a3b8' }}>{n}</button>
+              <button key={n} onClick={() => handleNumberClick(n)} style={{ padding: '12px 0', fontSize: '20px', fontWeight: 'bold', borderRadius: '8px', backgroundColor: '#f8fafc', border: '2px solid #94a3b8', boxShadow: '0 3px 0px #94a3b8', color: '#1e293b' }}>{n}</button>
             ))}
             <button onClick={handleClear} style={{ padding: '12px 0', fontSize: '18px', fontWeight: 'bold', borderRadius: '8px', backgroundColor: '#fca5a5', border: '2px solid #dc2626', boxShadow: '0 3px 0px #dc2626', color: '#b91c1c' }}>C</button>
             <button onClick={handleDelete} style={{ padding: '12px 0', fontSize: '18px', fontWeight: 'bold', borderRadius: '8px', backgroundColor: '#fdba74', border: '2px solid #ea580c', boxShadow: '0 3px 0px #ea580c', color: '#9a3412' }}>✕</button>
           </div>
         </div>
 
+        {/* COLUMNA 3: AUDITORÍA */}
         <div style={{ flex: '1.2', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box' }}>
-          <div style={{ backgroundColor: '#f1f5f9', borderRadius: '16px', padding: '12px 15px', border: '2px solid #e2e8f0', fontSize: '13px' }}>
-            <h5 style={{ margin: '0 0 8px 0', borderBottom: '1px solid #cbd5e1' }}>📋 Auditoría de Flujo</h5>
+          <div style={{ backgroundColor: '#f1f5f9', borderRadius: '16px', padding: '12px 15px', border: '2px solid #e2e8f0', fontSize: '13px', color: '#334155' }}>
+            <h5 style={{ margin: '0 0 8px 0', borderBottom: '1px solid #cbd5e1', paddingBottom: '4px' }}>📋 Auditoría de Flujo</h5>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Caja Inicial:</span><span>${state.cashInRegister}</span></div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>+ Recibido:</span><span>${currentCustomer.paymentWith}</span></div>
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#2563eb', fontWeight: 'bold' }}><span>- Vuelto Digitado:</span><span>-${displayValue}</span></div>
-            {penaltyAccumulated > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', color: '#dc2626' }}><span>- Multas:</span><span>-${penaltyAccumulated}</span></div>}
+            {penaltyAccumulated > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', color: '#dc2626', fontWeight: 'bold' }}><span>- Multas:</span><span>-${penaltyAccumulated}</span></div>}
             <hr style={{ borderTop: '1px solid #cbd5e1', margin: '8px 0' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}><span>Caja Proyectada:</span><span style={{ color: '#16a34a' }}>${simulatedCash}</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '14px' }}><span>Caja Proyectada:</span><span style={{ color: '#16a34a' }}>${simulatedCash}</span></div>
           </div>
 
           <button 
             onClick={handleConfirm}
-            style={{ width: '100%', backgroundColor: '#22c55e', color: 'white', padding: '16px', borderRadius: '12px', fontSize: '18px', fontWeight: '900', boxShadow: '0 6px 0px #16a34a' }}
+            style={{ width: '100%', backgroundColor: '#22c55e', color: 'white', padding: '16px', borderRadius: '12px', fontSize: '18px', fontWeight: '900', border: 'none', boxShadow: '0 6px 0px #16a34a, 0 8px 15px rgba(0,0,0,0.1)', cursor: 'pointer' }}
             onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(4px)'; e.currentTarget.style.boxShadow = '0 2px 0px #16a34a'; }}
-            onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(0px)'; e.currentTarget.style.boxShadow = '0 6px 0px #16a34a'; }}
+            onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(0px)'; e.currentTarget.style.boxShadow = '0 6px 0px #16a34a, 0 8px 15px rgba(0,0,0,0.1)'; }}
           >
             Confirmar Vuelto
           </button>

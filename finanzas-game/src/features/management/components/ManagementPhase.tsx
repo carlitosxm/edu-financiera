@@ -3,6 +3,7 @@ import React from 'react';
 import { useGame } from '../../../context/useGame';
 import { PRODUCT_CATALOG, FIXED_WEEKLY_COSTS } from '../../../utils/constants';
 import { generateCustomersQueue } from '../../../utils/customerGenerator';
+import { sounds } from '../../../utils/sounds'; // Importación de sonidos integrada
 
 const getProductIcon = (id: string) => {
   switch (id) {
@@ -79,10 +80,20 @@ export const ManagementPhase: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={() => buyStock(product.id, 1)} disabled={!canAffordOne} style={{ backgroundColor: canAffordOne ? '#22c55e' : '#e5e7eb', color: canAffordOne ? 'white' : '#9ca3af', padding: '10px 15px', borderRadius: '10px', fontWeight: 'bold' }}>
+                {/* Botón +1 con el sonido de moneda limpio */}
+                <button 
+                  onClick={() => { buyStock(product.id, 1); sounds.playCoin(); }} 
+                  disabled={!canAffordOne} 
+                  style={{ backgroundColor: canAffordOne ? '#22c55e' : '#e5e7eb', color: canAffordOne ? 'white' : '#9ca3af', padding: '10px 15px', borderRadius: '10px', fontWeight: 'bold' }}
+                >
                   +1 (${product.costPrice})
                 </button>
-                <button onClick={() => buyStock(product.id, 5)} disabled={state.cashInRegister < (product.costPrice * 5)} style={{ backgroundColor: state.cashInRegister >= (product.costPrice * 5) ? '#166534' : '#e5e7eb', color: state.cashInRegister >= (product.costPrice * 5) ? 'white' : '#9ca3af', padding: '10px 15px', borderRadius: '10px', fontWeight: 'bold' }}>
+                {/* Botón +5 con el sonido de moneda limpio */}
+                <button 
+                  onClick={() => { buyStock(product.id, 5); sounds.playCoin(); }} 
+                  disabled={state.cashInRegister < (product.costPrice * 5)} 
+                  style={{ backgroundColor: state.cashInRegister >= (product.costPrice * 5) ? '#166534' : '#e5e7eb', color: state.cashInRegister >= (product.costPrice * 5) ? 'white' : '#9ca3af', padding: '10px 15px', borderRadius: '10px', fontWeight: 'bold' }}
+                >
                   +5 (${product.costPrice * 5})
                 </button>
               </div>
