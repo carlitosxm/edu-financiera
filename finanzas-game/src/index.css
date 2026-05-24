@@ -63,6 +63,15 @@ button {
   transition: var(--transition);
 }
 
+.button-hover:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+.button-hover:active {
+  transform: translateY(1px);
+}
+
 input {
   font-family: inherit;
 }
