@@ -92,7 +92,7 @@ export const CashbackPhase: React.FC = () => {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: '1.5rem', alignItems: 'stretch' }}>
+      <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: '1.5rem', alignItems: 'stretch' }}>
         
         <Card title="Cliente">
           <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem' }}>

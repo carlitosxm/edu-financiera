@@ -43,7 +43,7 @@ export const ManagementPhase: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+      <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
         <StatBox label="Caja" value={`$${state.cashInRegister.toFixed(2)}`} icon="💰" color="var(--success)" />
         <StatBox label="Inventario" value={`${totalStock} unidades`} icon="📦" color="var(--secondary)" />
         <StatBox label="Costos Fijos" value={`$${state.currentWeekSummary.fixedCosts.toFixed(2)}`} icon="🏢" color="var(--error)" />
@@ -66,7 +66,7 @@ export const ManagementPhase: React.FC = () => {
 
       {!showUpgrades ? (
         <Card title={`Catálogo Mayorista - Semana ${state.week}`}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="mobile-grid-1" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {PRODUCT_CATALOG.map((product) => {
               const currentStock = state.inventory[product.id] || 0;
               const canAffordOne = state.cashInRegister >= product.costPrice;
@@ -119,7 +119,7 @@ export const ManagementPhase: React.FC = () => {
         </Card>
       ) : (
         <Card title="Mejoras para tu Tienda">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+          <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {state.upgrades.map((upgrade) => (
               <div key={upgrade.id} className="premium-card" style={{ 
                 display: 'flex', flexDirection: 'column', gap: '1rem',

@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 
 interface CardProps {
   children: ReactNode;
@@ -6,6 +6,7 @@ interface CardProps {
   title?: string;
   padding?: string;
   style?: React.CSSProperties;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export const Card: React.FC<CardProps> = ({ 
@@ -13,7 +14,8 @@ export const Card: React.FC<CardProps> = ({
   variant = 'default', 
   title,
   padding = '1.5rem',
-  style
+  style,
+  onClick
 }) => {
   const getVariantClass = () => {
     switch (variant) {
@@ -33,6 +35,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div 
       className={`premium-card ${getVariantClass()}`}
+      onClick={onClick}
       style={{
         padding,
         ...getVariantStyles(),

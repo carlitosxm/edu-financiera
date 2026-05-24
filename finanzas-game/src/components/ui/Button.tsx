@@ -1,4 +1,4 @@
-import React, { ButtonHTMLAttributes } from 'react';
+import React, { type ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'accent' | 'outline' | 'danger';
@@ -75,10 +75,7 @@ export const Button: React.FC<ButtonProps> = ({
         letterSpacing: '0.5px',
         ...style
       }}
-      className="button-hover"
-      onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(2px)'; e.currentTarget.style.boxShadow = 'none'; }}
-      onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(0)'; Object.assign(e.currentTarget.style, getVariantStyles()); }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; Object.assign(e.currentTarget.style, getVariantStyles()); }}
+      className={`button-hover ${props.className || ''}`}
       {...props}
     >
       {children}

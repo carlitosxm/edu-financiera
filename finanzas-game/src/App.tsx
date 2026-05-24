@@ -237,7 +237,7 @@ function App() {
         })()}
       </main>
 
-      <footer style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+      <footer className="mobile-stack" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', gap: '1rem' }}>
         <div style={{ fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
           Fase Actual: <span style={{ color: 'var(--secondary)' }}>{state.phase}</span>
         </div>

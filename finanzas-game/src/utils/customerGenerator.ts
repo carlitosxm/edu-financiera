@@ -5,7 +5,7 @@ const CUSTOMER_NAMES = [
   'Sofía', 'Mateo', 'Valentina', 'Lucas', 'Camila', 
   'Santiago', 'Elena', 'Benjamín', 'Isabella', 'Joaquín'
 ];
-const AVATARS = ['👨‍🎓', '👩‍🎓', '👨‍🏫', '👩‍🏫', '🎒', '🎨'];
+const AVATARS = ['👨‍🎓', '👩‍🎓', '👨‍🏫', '👩‍🏫', '👦', '👧', '👨‍💼', '👩‍💼'];
 const DENOMINATIONS = [5, 10, 20, 50, 100]; 
 
 export const generateCustomersQueue = (
