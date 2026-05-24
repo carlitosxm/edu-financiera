@@ -1,5 +1,5 @@
 // src/types/index.ts
-export type GamePhase = 'START_SCREEN' | 'MANAGEMENT' | 'BILLING' | 'CASHBACK' | 'SUMMARY' | 'VICTORY' | 'BANKRUPTCY';
+export type GamePhase = 'START_SCREEN' | 'MANAGEMENT' | 'BILLING' | 'CASHBACK' | 'SUMMARY' | 'VICTORY' | 'BANKRUPTCY' | 'EVENT';
 
 export interface Product {
   id: string;
@@ -7,6 +7,8 @@ export interface Product {
   costPrice: number;
   sellPrice: number;
   minStock: number;
+  category?: string;
+  icon?: string;
 }
 
 export interface Inventory {
@@ -22,6 +24,26 @@ export interface Customer {
     quantity: number;
   }[];
   paymentWith: number;
+}
+
+export interface GameEvent {
+  id: string;
+  title: string;
+  description: string;
+  type: 'PRICE_CHANGE' | 'DEMAND_CHANGE' | 'FIXED_COST_CHANGE' | 'CASH_BONUS';
+  impact: number; // e.g. 1.2 for 20% increase
+  productId?: string;
+}
+
+export interface ShopUpgrade {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  type: 'MARKETING' | 'EFFICIENCY' | 'CALCULATOR';
+  impact: number;
+  icon: string;
+  purchased: boolean;
 }
 
 export interface WeekSummary {
@@ -43,4 +65,6 @@ export interface GameState {
   customersQueue: Customer[];
   currentWeekSummary: Omit<WeekSummary, 'finalCash'>;
   history: WeekSummary[];
+  activeEvent: GameEvent | null;
+  upgrades: ShopUpgrade[];
 }

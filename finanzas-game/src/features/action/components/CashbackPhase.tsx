@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { useGame } from '../../../context/useGame';
 import { PRODUCT_CATALOG } from '../../../utils/constants';
-import { sounds } from '../../../utils/sounds'; // Importamos el motor de audio
+import { sounds } from '../../../utils/sounds';
+import { Card } from '../../../components/ui/Card';
+import { Button } from '../../../components/ui/Button';
 
 interface CoinParticle {
   id: number;
@@ -15,20 +17,24 @@ export const CashbackPhase: React.FC = () => {
   const [displayValue, setDisplayValue] = useState<string>('0');
   const [penaltyAccumulated, setPenaltyAccumulated] = useState<number>(0);
   const [errorFeedback, setErrorFeedback] = useState<string>('');
-  
-  // Estado local para renderizar las monedas físicas volando
   const [coins, setCoins] = useState<CoinParticle[]>([]);
 
   const currentCustomer = state.customersQueue[state.currentCustomerIndex];
 
-  const realTotal = currentCustomer?.cart.reduce((acc, item) => {
+  const realTotal = Math.round(currentCustomer?.cart.reduce((acc, item) => {
     const product = PRODUCT_CATALOG.find((p) => p.id === item.productId);
-    return acc + (product ? product.sellPrice * item.quantity : 0);
-  }, 0) || 0;
+    let sellPrice = product?.sellPrice || 0;
+    if (state.activeEvent?.type === 'PRICE_CHANGE' && state.activeEvent.productId === item.productId) {
+      sellPrice *= state.activeEvent.impact;
+    }
+    return acc + (sellPrice * item.quantity);
+  }, 0) || 0);
 
-  const expectedChange = (currentCustomer?.paymentWith || 0) - realTotal;
+  const expectedChange = Math.round((currentCustomer?.paymentWith || 0) - realTotal);
   const changeGivenNum = parseInt(displayValue, 10) || 0;
-  const simulatedCash = state.cashInRegister + (currentCustomer?.paymentWith || 0) - changeGivenNum - penaltyAccumulated;
+  
+  // Check for calculator upgrade
+  const hasCalculator = state.upgrades.find(u => u.type === 'CALCULATOR' && u.purchased);
 
   const handleNumberClick = (num: string) => {
     setErrorFeedback(''); 
@@ -44,28 +50,23 @@ export const CashbackPhase: React.FC = () => {
 
   const handleConfirm = () => {
     if (changeGivenNum === expectedChange) {
-      // 1. EFECTO EXITOSO: Reproducir "Cha-Ching"
       sounds.playRegister();
-
-      // 2. Disparar ráfaga de 8 monedas en posiciones aleatorias horizontales
-      const particles = Array.from({ length: 8 }).map((_, i) => ({
+      const particles = Array.from({ length: 12 }).map((_, i) => ({
         id: Date.now() + i,
-        left: Math.random() * 60 + 20, // Distribución centrada
-        delay: i * 0.06 // Cascada de salida
+        left: Math.random() * 80 + 10,
+        delay: i * 0.05
       }));
       setCoins(particles);
 
-      // 3. Pequeña pausa dramática para disfrutar el éxito antes de avanzar de pantalla
       setTimeout(() => {
         submitCashback(changeGivenNum, expectedChange, penaltyAccumulated);
         setDisplayValue('0');
         setPenaltyAccumulated(0);
         setErrorFeedback('');
         setCoins([]);
-      }, 800);
+      }, 1000);
 
     } else {
-      // EFECTO FALLIDO: Sonido raspado de error
       sounds.playError();
       setPenaltyAccumulated((prev) => prev + 2);
       setErrorFeedback(`⚠️ ¡Vuelto incorrecto! El cliente reclama que el vuelto real debe ser de $${expectedChange}. Se aplican $2 de multa.`);
@@ -75,79 +76,79 @@ export const CashbackPhase: React.FC = () => {
   if (!currentCustomer) return null;
 
   return (
-    <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '20px', width: '100%', boxSizing: 'border-box', position: 'relative' }} className="phase-animation">
-      
-      {/* RENDERIZADOR DE MONEDAS VOLADORAS */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', position: 'relative' }} className="phase-animation">
       {coins.map((coin) => (
-        <span 
-          key={coin.id} 
-          className="michi-coin-particle"
-          style={{ 
-            left: `${coin.left}%`, 
-            bottom: '80px',
-            animationDelay: `${coin.delay}s`
-          }}
-        >
-          🪙
-        </span>
+        <span key={coin.id} className="michi-coin-particle" style={{ left: `${coin.left}%`, bottom: '100px', animationDelay: `${coin.delay}s` }}>🪙</span>
       ))}
 
-      <h2 style={{ margin: '0 0 15px 0', color: '#b45309', fontSize: '22px', fontWeight: 800 }}>Fase 3: Gestión de Cambio</h2>
+      <div style={{ textAlign: 'center' }}>
+        <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--text)' }}>Entregar Vuelto</h2>
+        <p style={{ color: 'var(--text-muted)' }}>No te equivoques o perderás dinero en multas.</p>
+      </div>
 
       {errorFeedback && (
-        <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px', borderRadius: '12px', marginBottom: '15px', fontSize: '14px', textAlign: 'center', fontWeight: 'bold', border: '1px solid #fecaca' }}>
+        <div style={{ backgroundColor: 'var(--error)15', color: 'var(--error)', padding: '1rem', borderRadius: 'var(--radius)', textAlign: 'center', fontWeight: '700', border: '1px solid var(--error)30', animation: 'fadeIn 0.3s ease' }}>
           {errorFeedback}
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'row', gap: '15px', alignItems: 'stretch', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: '1.5rem', alignItems: 'stretch' }}>
         
-        {/* COLUMNA 1: CLIENTE */}
-        <div style={{ flex: '1', backgroundColor: '#fffbeb', padding: '15px', borderRadius: '16px', border: '1px solid #fef3c7', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
-          <img src="/michi_cliente.png" alt="Michi" style={{ width: '75px', height: '75px', objectFit: 'contain', marginBottom: '10px' }} />
-          <h4 style={{ margin: '0 0 5px 0', color: '#78350f' }}>Cliente: {currentCustomer.name}</h4>
-          <div style={{ borderTop: '1px dashed #fcd34d', paddingTop: '10px', width: '100%', fontSize: '14px', lineHeight: '1.6', color: '#4b5563' }}>
-            🛒 Total Cuenta: <strong>${realTotal}</strong><br />
-            💵 Paga Con: <strong>${currentCustomer.paymentWith}</strong>
+        <Card title="Cliente">
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ fontSize: '4rem' }}>{currentCustomer.avatar}</div>
+            <div style={{ fontWeight: '800' }}>{currentCustomer.name}</div>
+            <div style={{ backgroundColor: 'var(--background)', padding: '1rem', borderRadius: 'var(--radius)', textAlign: 'left', fontSize: '0.9rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Total:</span><span style={{fontWeight: '700'}}>${realTotal}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Pagó con:</span><span style={{fontWeight: '700', color: 'var(--primary)'}}>${currentCustomer.paymentWith}</span></div>
+            </div>
+            {hasCalculator && (
+              <div style={{ backgroundColor: 'var(--secondary)15', color: 'var(--secondary)', padding: '0.75rem', borderRadius: 'var(--radius)', fontSize: '0.85rem', fontWeight: '800' }}>
+                📲 Calc Pro: El vuelto es ${expectedChange}
+              </div>
+            )}
           </div>
-        </div>
+        </Card>
 
-        {/* COLUMNA 2: REGISTRADORA TÁCTIL */}
-        <div style={{ flex: '1.4', backgroundColor: '#cbd5e1', padding: '15px', borderRadius: '20px', border: '3px solid #64748b', boxShadow: '0 6px 0px #475569', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-          <div style={{ backgroundColor: '#1e293b', color: '#4ade80', padding: '10px 15px', borderRadius: '8px', textAlign: 'right', fontSize: '36px', fontFamily: 'monospace', marginBottom: '12px', border: '3px solid #94a3b8', textShadow: '0 0 8px rgba(74, 222, 128, 0.5)' }}>
+        <div style={{ 
+          backgroundColor: '#334155', padding: '1.5rem', borderRadius: 'var(--radius-lg)', 
+          boxShadow: '0 10px 0px #1e293b', border: '4px solid #475569'
+        }}>
+          <div style={{ 
+            backgroundColor: '#0f172a', color: '#4ade80', padding: '1.5rem', borderRadius: 'var(--radius)', 
+            textAlign: 'right', fontSize: '3rem', fontFamily: 'monospace', marginBottom: '1.5rem', 
+            border: '2px solid #1e293b', textShadow: '0 0 10px rgba(74, 222, 128, 0.4)' 
+          }}>
             {displayValue}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', flex: 1 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
             {['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].map((n) => (
-              <button key={n} onClick={() => handleNumberClick(n)} style={{ padding: '12px 0', fontSize: '20px', fontWeight: 'bold', borderRadius: '8px', backgroundColor: '#f8fafc', border: '2px solid #94a3b8', boxShadow: '0 3px 0px #94a3b8', color: '#1e293b' }}>{n}</button>
+              <Button key={n} onClick={() => handleNumberClick(n)} variant="outline" style={{ backgroundColor: 'white', border: 'none', fontSize: '1.5rem' }}>{n}</Button>
             ))}
-            <button onClick={handleClear} style={{ padding: '12px 0', fontSize: '18px', fontWeight: 'bold', borderRadius: '8px', backgroundColor: '#fca5a5', border: '2px solid #dc2626', boxShadow: '0 3px 0px #dc2626', color: '#b91c1c' }}>C</button>
-            <button onClick={handleDelete} style={{ padding: '12px 0', fontSize: '18px', fontWeight: 'bold', borderRadius: '8px', backgroundColor: '#fdba74', border: '2px solid #ea580c', boxShadow: '0 3px 0px #ea580c', color: '#9a3412' }}>✕</button>
+            <Button onClick={handleClear} variant="danger" style={{ fontSize: '1.2rem' }}>C</Button>
+            <Button onClick={handleDelete} variant="accent" style={{ fontSize: '1.2rem' }}>✕</Button>
           </div>
         </div>
 
-        {/* COLUMNA 3: AUDITORÍA */}
-        <div style={{ flex: '1.2', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box' }}>
-          <div style={{ backgroundColor: '#f1f5f9', borderRadius: '16px', padding: '12px 15px', border: '2px solid #e2e8f0', fontSize: '13px', color: '#334155' }}>
-            <h5 style={{ margin: '0 0 8px 0', borderBottom: '1px solid #cbd5e1', paddingBottom: '4px' }}>📋 Auditoría de Flujo</h5>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Caja Inicial:</span><span>${state.cashInRegister}</span></div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>+ Recibido:</span><span>${currentCustomer.paymentWith}</span></div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#2563eb', fontWeight: 'bold' }}><span>- Vuelto Digitado:</span><span>-${displayValue}</span></div>
-            {penaltyAccumulated > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', color: '#dc2626', fontWeight: 'bold' }}><span>- Multas:</span><span>-${penaltyAccumulated}</span></div>}
-            <hr style={{ borderTop: '1px solid #cbd5e1', margin: '8px 0' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '14px' }}><span>Caja Proyectada:</span><span style={{ color: '#16a34a' }}>${simulatedCash}</span></div>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', justifyContent: 'space-between' }}>
+          <Card title="Auditoría" style={{ fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Caja:</span><span>${state.cashInRegister}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>+ Recibido:</span><span>${currentCustomer.paymentWith}</span></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--secondary)', fontWeight: '800' }}><span>- Vuelto:</span><span>-${displayValue}</span></div>
+              {penaltyAccumulated > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--error)', fontWeight: '800' }}><span>- Multas:</span><span>-${penaltyAccumulated}</span></div>}
+              <hr style={{ margin: '0.5rem 0', border: 'none', borderTop: '1px dashed #ddd' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '900', fontSize: '1rem', color: 'var(--primary)' }}>
+                <span>Proyectado:</span>
+                <span>${state.cashInRegister + currentCustomer.paymentWith - changeGivenNum - penaltyAccumulated}</span>
+              </div>
+            </div>
+          </Card>
 
-          <button 
-            onClick={handleConfirm}
-            style={{ width: '100%', backgroundColor: '#22c55e', color: 'white', padding: '16px', borderRadius: '12px', fontSize: '18px', fontWeight: '900', border: 'none', boxShadow: '0 6px 0px #16a34a, 0 8px 15px rgba(0,0,0,0.1)', cursor: 'pointer' }}
-            onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(4px)'; e.currentTarget.style.boxShadow = '0 2px 0px #16a34a'; }}
-            onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(0px)'; e.currentTarget.style.boxShadow = '0 6px 0px #16a34a, 0 8px 15px rgba(0,0,0,0.1)'; }}
-          >
-            Confirmar Vuelto
-          </button>
+          <Button variant="primary" size="lg" fullWidth onClick={handleConfirm} style={{ padding: '1.5rem' }}>
+            Confirmar ✅
+          </Button>
         </div>
-
       </div>
     </div>
   );

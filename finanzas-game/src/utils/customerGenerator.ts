@@ -1,12 +1,18 @@
-// src/utils/customerGenerator.ts
-import type { Customer, Inventory } from '../types/index';
+import type { Customer, Inventory, GameEvent } from '../types/index';
 import { PRODUCT_CATALOG } from './constants';
 
-const CUSTOMER_NAMES = ['Sofía', 'Mateo', 'Valentina', 'Lucas', 'Camila', 'Santiago', 'Elena', 'Benjamín'];
-const AVATARS = ['student_1', 'student_2', 'student_3', 'teacher_1', 'parent_1'];
+const CUSTOMER_NAMES = [
+  'Sofía', 'Mateo', 'Valentina', 'Lucas', 'Camila', 
+  'Santiago', 'Elena', 'Benjamín', 'Isabella', 'Joaquín'
+];
+const AVATARS = ['👨‍🎓', '👩‍🎓', '👨‍🏫', '👩‍🏫', '🎒', '🎨'];
 const DENOMINATIONS = [5, 10, 20, 50, 100]; 
 
-export const generateCustomersQueue = (count: number, currentInventory: Inventory): Customer[] => {
+export const generateCustomersQueue = (
+  count: number, 
+  currentInventory: Inventory,
+  activeEvent: GameEvent | null = null
+): Customer[] => {
   const queue: Customer[] = [];
   const simulatedInventory = { ...currentInventory };
 
@@ -30,15 +36,21 @@ export const generateCustomersQueue = (count: number, currentInventory: Inventor
       const quantity = Math.floor(Math.random() * maxQty) + 1;
       
       simulatedInventory[product.id] -= quantity; 
-      totalToPay += product.sellPrice * quantity;
+      
+      let sellPrice = product.sellPrice;
+      if (activeEvent?.type === 'PRICE_CHANGE' && activeEvent.productId === product.id) {
+        sellPrice *= activeEvent.impact;
+      }
+      
+      totalToPay += Math.round(sellPrice * quantity);
       
       return { productId: product.id, quantity };
     });
 
-    const validBills = DENOMINATIONS.filter((bill) => bill >= totalToPay);
+    const validBills = DENOMINATIONS.filter((bill) => bill > totalToPay);
     const paymentWith = validBills.length > 0 
-      ? validBills[Math.floor(Math.random() * validBills.length)]
-      : Math.ceil(totalToPay / 20) * 20;
+      ? validBills[Math.floor(Math.random() * Math.min(validBills.length, 3))]
+      : (Math.ceil((totalToPay + 1) / 20) * 20);
 
     queue.push({
       id: `cust_${Date.now()}_${i}`,

@@ -1,56 +1,75 @@
 // src/features/summary/components/SummaryPhase.tsx
 import React from 'react';
 import { useGame } from '../../../context/useGame';
+import { Card } from '../../../components/ui/Card';
+import { Button } from '../../../components/ui/Button';
 
 export const SummaryPhase: React.FC = () => {
   const { state, closeDay } = useGame();
   const summary = state.currentWeekSummary;
   const isLastWeek = state.week === 4;
 
+  const totalExpenses = summary.merchandiseCost + summary.fixedCosts + summary.cashbackErrors;
+  const netEarnings = summary.salesIncome - totalExpenses;
+
   return (
-    <div className="phase-animation" style={{ padding: '30px', background: 'linear-gradient(180deg, #4c2a6a 0%, #2d1643 100%)', borderRadius: '24px', border: '3px solid #7c3aed', boxShadow: '0 15px 35px rgba(0,0,0,0.4)', width: '100%', boxSizing: 'border-box' }} >
-      
-      <h2 style={{ color: '#fde047', marginTop: 0, marginBottom: '25px', fontSize: '24px', fontWeight: 800 }}>
-        Fase 4: Auditoría de Cierre Semanal
-      </h2>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '30px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '18px', fontWeight: 'bold', color: '#ffffff' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span>💰</span><span>Ventas Totales:</span></div>
-          <span style={{ color: '#4ade80', fontSize: '20px', fontWeight: 800 }}>+${summary.salesIncome}</span>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '18px', fontWeight: 'bold', color: '#ffffff' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span>📦</span><span>Costo Inventario Vendido:</span></div>
-          <span style={{ color: '#f87171', fontSize: '20px', fontWeight: 800 }}>-${summary.merchandiseCost}</span>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '18px', fontWeight: 'bold', color: '#ffffff' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span>🏫</span><span>Costos Fijos Cobrados:</span></div>
-          <span style={{ color: '#f87171', fontSize: '20px', fontWeight: 800 }}>-${summary.fixedCosts}</span>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '18px', fontWeight: 'bold', color: '#ffffff' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span>❌</span><span>Pérdida por Descuadre:</span></div>
-          <span style={{ color: summary.cashbackErrors > 0 ? '#f87171' : '#ffffff', fontSize: '20px', fontWeight: 800 }}>-${summary.cashbackErrors}</span>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }} className="phase-animation">
+      <div style={{ textAlign: 'center' }}>
+        <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--text)' }}>Resumen Semanal</h2>
+        <p style={{ color: 'var(--text-muted)' }}>Semana {state.week} finalizada.</p>
       </div>
 
-      <div style={{ background: 'linear-gradient(180deg, #475569 0%, #1e293b 100%)', padding: '5px 8px', borderRadius: '18px', border: '2px solid #64748b', display: 'flex' }}>
-        <button 
-          onClick={closeDay} 
-          style={{ 
-            width: '100%', color: 'white', padding: '15px', border: '1px solid #15803d', borderRadius: '14px', fontSize: '18px', fontWeight: 'bold',
-            background: isLastWeek ? 'linear-gradient(180deg, #eab308 0%, #ca8a04 100%)' : 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)', 
-            boxShadow: isLastWeek ? '0 4px 0px #854d0e' : '0 4px 0px #14532d'
-          }}
-          onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(3px)'; }}
-          onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(0px)'; }}
-        >
-          {isLastWeek ? '🏆 Pagar Alquiler Final y Ver Resultado' : '📅 Pagar Alquiler y Terminar Semana'}
-        </button>
-      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+        <Card title="Desglose Financiero">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Saldo Inicial:</span>
+              <span style={{ fontWeight: '700' }}>${summary.initialCash.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem' }}>
+              <span>Ingresos por Ventas:</span>
+              <span style={{ color: 'var(--success)', fontWeight: '800' }}>+${summary.salesIncome.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Costo de Mercancía:</span>
+              <span style={{ color: 'var(--error)', fontWeight: '700' }}>-${summary.merchandiseCost.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Gastos del Local:</span>
+              <span style={{ color: 'var(--error)', fontWeight: '700' }}>-${summary.fixedCosts.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Multas por Cambio:</span>
+              <span style={{ color: summary.cashbackErrors > 0 ? 'var(--error)' : 'var(--text-muted)', fontWeight: '700' }}>-${summary.cashbackErrors.toFixed(2)}</span>
+            </div>
+            <hr style={{ margin: '1rem 0', border: 'none', borderTop: '2.5px solid var(--background)' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.5rem', fontWeight: '900' }}>
+              <span>Ganancia Neta:</span>
+              <span style={{ color: netEarnings >= 0 ? 'var(--primary)' : 'var(--error)' }}>
+                {netEarnings >= 0 ? '+' : ''}${netEarnings.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </Card>
 
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', justifyContent: 'center' }}>
+           <div className="premium-card" style={{ textAlign: 'center', backgroundColor: 'var(--secondary)05' }}>
+             <div style={{ fontSize: '3rem' }}>📅</div>
+             <p style={{ marginTop: '1rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+               {isLastWeek ? '¡Has completado el mes! Prepárate para el resultado final.' : `Faltan ${4 - state.week} semanas para completar el mes.`}
+             </p>
+           </div>
+           <Button 
+             variant={isLastWeek ? 'accent' : 'primary'} 
+             size="lg" 
+             fullWidth 
+             onClick={closeDay}
+             style={{ padding: '1.5rem', fontSize: '1.2rem' }}
+           >
+             {isLastWeek ? '🏆 Ver Resultado Final' : '📅 Continuar a Siguiente Semana'}
+           </Button>
+        </div>
+      </div>
     </div>
   );
 };

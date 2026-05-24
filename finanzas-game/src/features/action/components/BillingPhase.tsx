@@ -2,80 +2,83 @@
 import React from 'react';
 import { useGame } from '../../../context/useGame';
 import { PRODUCT_CATALOG } from '../../../utils/constants';
-
-const getProductIcon = (id: string) => {
-  switch (id) {
-    case 'prod_cuaderno': return '📓';
-    case 'prod_lapiz': return '🖊️';
-    case 'prod_mochila': return '🎒';
-    case 'prod_calculadora': return '🖩';
-    default: return '📦';
-  }
-};
+import { Card } from '../../../components/ui/Card';
+import { Button } from '../../../components/ui/Button';
 
 export const BillingPhase: React.FC = () => {
   const { state, goToCashback } = useGame();
   const currentCustomer = state.customersQueue[state.currentCustomerIndex];
 
-  const realTotal = currentCustomer?.cart.reduce((acc, item) => {
+  if (!currentCustomer) return <div style={{ textAlign: 'center', padding: '4rem' }}>Cargando cliente...</div>;
+
+  const realTotal = Math.round(currentCustomer.cart.reduce((acc, item) => {
     const product = PRODUCT_CATALOG.find((p) => p.id === item.productId);
-    return acc + (product ? product.sellPrice * item.quantity : 0);
-  }, 0) || 0;
-
-  if (!currentCustomer) return <div style={{ padding: '20px' }}>Cargando...</div>;
-
-  const firstProductInCart = currentCustomer.cart[0];
-  const thoughtProduct = PRODUCT_CATALOG.find(p => p.id === firstProductInCart?.productId);
+    let sellPrice = product?.sellPrice || 0;
+    
+    // Apply event impact if active
+    if (state.activeEvent?.type === 'PRICE_CHANGE' && state.activeEvent.productId === item.productId) {
+      sellPrice *= state.activeEvent.impact;
+    }
+    
+    return acc + (sellPrice * item.quantity);
+  }, 0));
 
   return (
-    <div style={{ padding: '25px', border: '2px solid #93c5fd', borderRadius: '20px', backgroundColor: '#eff6ff', display: 'flex', flexDirection: 'column', width: '100%', boxSizing: 'border-box' }}>
-      
-      <h2 style={{ color: '#1e3a8a', margin: '0 0 10px 0', fontSize: '24px' }}>Fase 2: Caja Registradora</h2>
-      <p style={{ color: '#374151', margin: '0 0 25px 0', fontSize: '15px' }}>
-        Atendiendo al cliente <strong>{currentCustomer.name}</strong> ({state.currentCustomerIndex + 1} de {state.customersQueue.length})
-      </p>
-      
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', alignItems: 'center' }}>
-        
-        <div style={{ flex: 1, backgroundColor: '#ffffff', padding: '20px', boxShadow: '3px 5px 15px rgba(0,0,0,0.08)', position: 'relative', fontFamily: '"Courier New", Courier, monospace', color: '#111827' }}>
-          <h3 style={{ margin: '0 0 15px 0', textAlign: 'center', fontSize: '18px', borderBottom: '1px dashed #d1d5db', paddingBottom: '10px' }}>Recibo Escolar</h3>
-          <ul style={{ listStyleType: 'none', padding: 0, margin: '0 0 15px 0', fontSize: '15px' }}>
-            {currentCustomer.cart.map((item, index) => {
-              const product = PRODUCT_CATALOG.find((p) => p.id === item.productId);
-              return (
-                <li key={index} style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{item.quantity}x {product?.name.substring(0, 12)}...</span>
-                  <span>${(product?.sellPrice || 0) * item.quantity}</span>
-                </li>
-              );
-            })}
-          </ul>
-          <div style={{ borderTop: '2px solid #111827', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '20px', fontWeight: 'bold' }}>
-            <span>TOTAL:</span>
-            <span style={{ color: '#16a34a' }}>${realTotal}</span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '130px', position: 'relative' }}>
-          <div style={{ backgroundColor: '#ffffff', border: '2px solid #d1d5db', borderRadius: '20px', padding: '10px 15px', marginBottom: '15px', position: 'relative', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '18px' }}>
-            <span>{getProductIcon(thoughtProduct?.id || '')}</span>
-            <span>${thoughtProduct?.sellPrice}</span>
-            <div style={{ position: 'absolute', bottom: '-8px', left: '50%', transform: 'translateX(-50%) rotate(45deg)', width: '12px', height: '12px', backgroundColor: '#ffffff', borderRight: '2px solid #d1d5db', borderBottom: '2px solid #d1d5db' }} />
-          </div>
-
-          <img src="/michi_cliente.png" alt="Michi" style={{ width: '110px', height: 'auto', filter: 'drop-shadow(0px 6px 6px rgba(0,0,0,0.15))' }} />
-        </div>
-
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h2 style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--text)' }}>Venta en Proceso</h2>
+        <p style={{ color: 'var(--text-muted)' }}>
+          Atendiendo a <strong>{currentCustomer.name}</strong> ({state.currentCustomerIndex + 1} / {state.customersQueue.length})
+        </p>
       </div>
 
-      <button 
-        onClick={goToCashback} 
-        style={{ width: '100%', backgroundColor: '#22c55e', color: 'white', padding: '18px', borderRadius: '12px', fontSize: '22px', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', boxShadow: '0 6px 0px #16a34a' }}
-        onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(6px)'; e.currentTarget.style.boxShadow = '0 0px 0px #16a34a'; }}
-        onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(0px)'; e.currentTarget.style.boxShadow = '0 6px 0px #16a34a'; }}
-      >
-        Cobrar ${realTotal} 📠
-      </button>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', alignItems: 'start' }}>
+        <Card title="Recibo de Venta" style={{ fontFamily: 'monospace' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem 0' }}>
+            {currentCustomer.cart.map((item, index) => {
+              const product = PRODUCT_CATALOG.find((p) => p.id === item.productId);
+              let sellPrice = product?.sellPrice || 0;
+              const isAffected = state.activeEvent?.type === 'PRICE_CHANGE' && state.activeEvent.productId === item.productId;
+              if (isAffected) sellPrice *= state.activeEvent!.impact;
+
+              return (
+                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem' }}>
+                  <span>{item.quantity}x {product?.name}</span>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontWeight: '700' }}>${sellPrice * item.quantity}</span>
+                    {isAffected && <div style={{ fontSize: '0.7rem', color: 'var(--accent)' }}>(PRECIO ESPECIAL ✨)</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ borderTop: '2.5px solid var(--text)', paddingTop: '1.5rem', marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', fontSize: '2rem', fontWeight: '900' }}>
+            <span>TOTAL:</span>
+            <span style={{ color: 'var(--primary)' }}>${realTotal}</span>
+          </div>
+        </Card>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <Card variant="glass" style={{ textAlign: 'center', padding: '2rem' }}>
+            <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>{currentCustomer.avatar}</div>
+            <div style={{ 
+              backgroundColor: 'white', padding: '0.75rem 1rem', borderRadius: 'var(--radius)', 
+              boxShadow: 'var(--shadow)', display: 'inline-block', position: 'relative',
+              fontWeight: '800', fontSize: '1.2rem'
+            }}>
+              "¡Hola! Necesito esto."
+              <div style={{ 
+                position: 'absolute', bottom: '-8px', left: '50%', transform: 'translateX(-50%) rotate(45deg)', 
+                width: '16px', height: '16px', backgroundColor: 'white',
+              }} />
+            </div>
+          </Card>
+          
+          <Button size="lg" fullWidth onClick={goToCashback} style={{ padding: '1.5rem', fontSize: '1.4rem' }}>
+            Cobrar ${realTotal} 📠
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
