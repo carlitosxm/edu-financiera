@@ -124,3 +124,50 @@ input {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .game-app-container {
+    padding: 1rem;
+    padding-bottom: 5rem;
+  }
+
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+
+  .mobile-grid-1 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-hide {
+    display: none !important;
+  }
+
+  .mobile-text-sm {
+    font-size: 0.875rem !important;
+  }
+
+  .premium-card {
+    padding: 1rem;
+  }
+
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.25rem !important; }
+}
+
+/* Start Screen Responsive Background */
+.start-screen-bg {
+  background-image: url('/michi-fondo.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-color: #fdf6e3;
+}
+
+@media (max-width: 768px) {
+  .start-screen-bg {
+    background-size: cover;
+    background-position: center bottom;
+  }
+}

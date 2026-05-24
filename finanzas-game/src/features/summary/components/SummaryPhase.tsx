@@ -19,7 +19,7 @@ export const SummaryPhase: React.FC = () => {
         <p style={{ color: 'var(--text-muted)' }}>Semana {state.week} finalizada.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+      <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
         <Card title="Desglose Financiero">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
