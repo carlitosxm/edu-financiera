@@ -2,7 +2,7 @@
 import type { Product, GameEvent, ShopUpgrade } from '../types/index';
 
 export const INITIAL_CASH = 100;
-export const FIXED_WEEKLY_COSTS = 15; 
+export const FIXED_WEEKLY_COSTS = 15;
 
 export const PRODUCT_CATALOG: Product[] = [
   { id: 'prod_cuaderno', name: 'Cuaderno Universitario', costPrice: 1, sellPrice: 4, minStock: 5, icon: '📔' },
@@ -21,7 +21,6 @@ export const EVENTS: GameEvent[] = [
 ];
 
 export const UPGRADES: ShopUpgrade[] = [
-  { id: 'up_calc', name: 'Calculadora Pro', description: 'Muestra el vuelto exacto que debes entregar.', cost: 30, type: 'CALCULATOR', impact: 1, icon: '📲', purchased: false },
-  { id: 'up_ads', name: 'Publicidad en el Patio', description: 'Atrae a 2 clientes extra por semana.', cost: 50, type: 'MARKETING', impact: 2, icon: '📢', purchased: false },
+  { id: 'up_calc', name: 'Calculadora Pro', description: 'Muestra el vuelto exacto que debes entregar.', cost: 100, type: 'CALCULATOR', impact: 1, icon: '📲', purchased: false },
   { id: 'up_wholesale', name: 'Convenio Proveedor', description: 'Reduce los costos fijos semanales en $5.', cost: 80, type: 'EFFICIENCY', impact: 5, icon: '🤝', purchased: false },
 ];
